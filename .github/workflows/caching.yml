@@ -1,0 +1,44 @@
+name: CI with Dependency Caching
+
+on:
+  push:
+    branches: [ "main" ]
+  workflow_dispatch:
+
+jobs:
+  build-with-cache:
+    runs-on: ubuntu-latest
+
+    steps:
+      # Step 1: Checkout the repository
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      # Step 2: Set up Python (example; adjust if using uv or other tools)
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: "3.11"
+
+      # Step 3: Cache Python dependencies
+      - name: Cache dependencies
+        id: cache-step
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/pip
+          key: cache-5a1ca97
+
+      # Step 4: Install dependencies if cache missed
+      - name: Install dependencies
+        run: |
+          pip install --upgrade pip
+          pip install -r requirements.txt
+
+      # Step 5: Echo cache hit/miss
+      - name: prime-cache-5a1ca97
+        run: |
+          if [[ "${{ steps.cache-step.outputs.cache-hit }}" == "true" ]]; then
+            echo "Cache hit! Dependencies were restored."
+          else
+            echo "Cache miss. Dependencies were installed and cache will be saved."
+          fi
